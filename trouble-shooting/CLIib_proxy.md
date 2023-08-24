@@ -1,4 +1,19 @@
 ### 목차
+1. [문제상황](#문제상황)
+2. [원인](#원인)
+    1. [한 줄 정리](#한-줄-정리)
+3. [원인 이해를 위한 지식](#원인-이해를-위한-지식)
+    1. [리플렉션](#리플렉션)
+    2. [인터페이스 기반 프록시 vs 클래스 기반 프록시](#인터페이스-기반-프록시-vs-클래스-기반-프록시)
+    3. [IoC 컨테이너와 AOP Proxy의 관계](#ioc-컨테이너와-aop-proxy의-관계)
+    4. [두 가지 AOP Proxy는 어떤 상황에 생성하게될까?](#두-가지-aop-proxy는-어떤-상황에-생성하게될까)
+    5. [왜 프록시를 사용하나?](#왜-프록시를-사용하나)
+    6. [JDK dynamic proxy를 쓸지, CGLib proxy를 쓸지 어떻게 결정할까?](#jdk-dynamic-proxy를-쓸지-cglib-proxy를-쓸지-어떻게-결정할까)
+    7. [JDK Dynamic Proxy의 Proxy객체 생성방법](#jdk-dynamic-proxy의-proxy객체-생성방법)
+    8. [CGLib의 Proxy객체 생성방법](#cglib의-proxy객체-생성방법)
+    9. [두 기술을 함께 사용할 때 부가 기능을 적용하기 위해 JDK 동적 프록시가 제공하는 InvocationHandler와 CGLIB가 제공하는 MethodInterceptor를 각각 중복으로 따로 만들어야할까?](#두-기술을-함께-사용할-때-부가-기능을-적용하기-위해-jdk-동적-프록시가-제공하는-invocationhandler와-cglib가-제공하는-methodinterceptor를-각각-중복으로-따로-만들어야할까)
+4. [해결](#해결)
+5. [번외](#번외)
 
 
 ![image](https://github.com/shinyubin989/note/assets/69676101/24d90d66-4df6-46f8-987e-d1dbd1ecb8e6)
@@ -47,7 +62,7 @@
 - 동적으로 생성된 Proxy Bean은 타깃의 메소드가 호출되는 시점에 **부가기능을 추가할 메소드를 자체적으로 판단하고 가로채어 부가기능을 주입**해주는데, 이처럼 호출 시점에 동적으로 위빙을 한다 하여 런타임 위빙(Runtime Weaving)이라 한다.
 - 따라서 Spring AOP는 런타임 위빙의 방식을 기반으로 하고 있으며, Spring에선 런타임 위빙을 할 수 있도록 상황에 따라 JDK Dynamic Proxy와 CGLIB 방식을 통해 Proxy Bean을 생성을 해준다.
 
-### 두 가지 AOP Proxy는 어떤 상황에 생성하게될까?
+### 두 가지 AOP Proxy는 어떤 상황에 생성하게될까
 
 - Spring은 AOP Proxy를 생성하는 과정에서 자체 검증 로직을 통해 타깃의 인터페이스 유무를 판단한다.
     
@@ -56,7 +71,7 @@
     
 - 만약 타깃이 하나 이상의 인터페이스를 구현하고 있는 클래스라면 JDK Dynamic Proxy의 방식으로 생성되고 인터페이스를 구현하지 않은 클래스라면 CGLIB의 방식으로 AOP 프록시를 생성한다.
 
-### 왜 프록시를 사용하나?
+### 왜 프록시를 사용하나
 
 - 프록시 객체란
     - 프록시 객체는 원래 객체를 감싸고 있는 객체로, 원래 객체와 타입은 동일하다.
@@ -83,7 +98,7 @@
         ```
         
 
-### JDK dynamic proxy를 쓸지, CGLib proxy를 쓸지 어떻게 결정할까?
+### JDK dynamic proxy를 쓸지 CGLib proxy를 쓸지 어떻게 결정할까
 
 - 스프링은 유사한 구체적인 기술들이 있을 때, 그것들을 통합해서 일관성 있게 접근할 수 있고, 더욱 편리하게 사용할 수 있는 추상화된 기술을 제공한다.
 - 스프링은 동적 프록시를 통합해서 편리하게 만들어주는 프록시 팩토리(`ProxyFactory`)라는 기능을 제공한다.
@@ -114,7 +129,7 @@ Enhancer enhancer = new Enhancer();
 Object proxy = enhancer.create(); // Proxy 생성
 ```
 
-### **두 기술을 함께 사용할 때 부가 기능을 적용하기 위해 JDK 동적 프록시가 제공하는 InvocationHandler와 CGLIB가 제공하는 MethodInterceptor를 각각 중복으로 따로 만들어야할까?**
+### **두 기술을 함께 사용할 때 부가 기능을 적용하기 위해 JDK 동적 프록시가 제공하는 InvocationHandler와 CGLIB가 제공하는 MethodInterceptor를 각각 중복으로 따로 만들어야할까**
 
 ![image](https://github.com/shinyubin989/note/assets/69676101/29bc088a-6fa3-4783-aed8-c9edcdc12cba)
 
@@ -172,11 +187,13 @@ class level에 open키워드를 달아 해결했다.
 
 Intellij 2021년이 아닌 2023년 버전을 사용하면 login메소드에 빨간줄로 open키워드를 사용하라고 안내해준다. 당시 2021년버전은 이를 알려주지 않아 컴파일시까지 문제가 된다는 걸 몰랐다.
 - Intellij 2021년 버전 - 빨간줄이 안뜬다
-![Intellij 2021년 버전 - 빨간줄이 안뜬다](https://github.com/shinyubin989/note/assets/69676101/cce93586-9889-46d7-a83b-3de2e320eb26)
+<img src="https://github.com/shinyubin989/note/assets/69676101/cce93586-9889-46d7-a83b-3de2e320eb26" width=50%/>
 
 
 - Intellij 2023년 버전 - 빨간줄로 알려준다
-![Intellij 2023년 버전 - 빨간줄로 알려준다](https://github.com/shinyubin989/note/assets/69676101/31c46278-9f41-463f-9125-d2e22a918cf8)
+<img src="https://github.com/shinyubin989/note/assets/69676101/31c46278-9f41-463f-9125-d2e22a918cf8" width=50% />
 
+
+<br><br>
 
 **reference : 인프런 - 스프링 핵심 원리 고급편(김영한)**
